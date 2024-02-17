@@ -20,7 +20,7 @@ using JovDK.SerializingTools.Json;
 // ...
 
 
-namespace PackageName.MajorContext.MinorContext
+namespace JovDK.App.Monetization.AdMob
 {
     public partial class RewardedAdsHandler : MonoBehaviour
     {
@@ -32,7 +32,7 @@ namespace PackageName.MajorContext.MinorContext
             // iOS testing ad id = "ca-app-pub-3940256099942544/1712485313"
 
 #if UNITY_ANDROID
-            value = "ca-app-pub-7573135324040135/8151205141"; // TODO: REVIEW THIS!
+            value = "ca-app-pub-8716863197536867/7258711711"; // TODO: REVIEW THIS!
 #elif UNITY_IPHONE
             value = "ca-app-pub-3940256099942544/1712485313"; // TODO: REVIEW THIS!
 #else
@@ -55,7 +55,7 @@ namespace PackageName.MajorContext.MinorContext
                 _currentRewardedAd = null;
             }
 
-            Debug.Log("Loading the rewarded ad.");
+            // Debug.Log("Loading the rewarded ad.");
 
             // create our request used to load the ad.
             AdRequest adRequest = new AdRequest();
@@ -72,20 +72,6 @@ namespace PackageName.MajorContext.MinorContext
                 _currentRewardedAd.Show(OnVideoRewardClose);
             }
         }
-
-        public void OnVideoRewardClose(Reward reward)
-        {
-            DebugExtension.NDLog(
-                "#> ".ToColor(GoodColors.Pink) + "OnVideoRewardClose" + "\n" +
-                "reward = " + "\n" +
-                reward.SerializeObjectToJSON(true));
-
-            // TODO: Reward the user.
-            const string rewardMsg = "Rewarded ad rewarded the user. Type: {0}, amount: {1}.";
-            Debug.Log(String.Format(rewardMsg, reward.Type, reward.Amount));
-            // LoadRewardedAd();
-        }
-
         void RegisterEventHandlers(RewardedAd rewardedAd)
         {
             // Raised when the ad is estimated to have earned money.

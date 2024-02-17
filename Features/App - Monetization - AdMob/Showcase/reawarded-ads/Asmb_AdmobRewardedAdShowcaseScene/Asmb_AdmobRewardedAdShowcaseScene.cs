@@ -18,7 +18,7 @@ using JovDK.SerializingTools.Json;
 // ...
 
 
-namespace PackageName.MajorContext.MinorContext
+namespace JovDK.App.Monetization.AdMob.Testing.Showcase
 {
     public partial class Asmb_AdmobRewardedAdShowcaseScene : MonoBehaviour
     {

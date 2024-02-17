@@ -20,7 +20,7 @@ using JovDK.SerializingTools.Json;
 // ...
 
 
-namespace PackageName.MajorContext.MinorContext
+namespace JovDK.App.Monetization.AdMob
 {
     public partial class RewardedAdsHandler : MonoBehaviour
     {
@@ -50,9 +50,13 @@ namespace PackageName.MajorContext.MinorContext
         // bool _parts;
 
 
-        // [Space(5), Header("[ Configs ]"), Space(10)]
+        [Space(5), Header("[ Configs ]"), Space(10)]
 
-        // bool _configs;
+        // Android testing ad id = "ca-app-pub-3940256099942544/5224354917"
+        // iOS testing ad id = "ca-app-pub-3940256099942544/1712485313"
+        [SerializeField] string _androidAdUnitId = "UNDEFINED";
+        [SerializeField] string _iOSAdUnitId = "UNDEFINED";
+        string _adUnitId = null; // This will remain null for unsupported platforms
 
 
         // void Awake()

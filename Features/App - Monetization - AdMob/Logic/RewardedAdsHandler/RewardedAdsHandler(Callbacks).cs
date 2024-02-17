@@ -20,7 +20,7 @@ using JovDK.SerializingTools.Json;
 // ...
 
 
-namespace PackageName.MajorContext.MinorContext
+namespace JovDK.App.Monetization.AdMob
 {
     public partial class RewardedAdsHandler : MonoBehaviour
     {
@@ -79,7 +79,20 @@ namespace PackageName.MajorContext.MinorContext
         void OnInitializationFinish()
         {
             OnInitializationFinishCallback?.Invoke();
-            LoadRewardedAd();
+            // LoadRewardedAd();
+        }
+
+        public void OnVideoRewardClose(Reward reward)
+        {
+            DebugExtension.NDLog(
+                "#> ".ToColor(GoodColors.Pink) + "OnVideoRewardClose" + "\n" +
+                "reward = " + "\n" +
+                reward.SerializeObjectToJSON(true));
+
+            // TODO: Reward the user.
+            const string rewardMsg = "Rewarded ad rewarded the user. Type: {0}, amount: {1}.";
+            Debug.Log(String.Format(rewardMsg, reward.Type, reward.Amount));
+            // LoadRewardedAd();
         }
 
         void OnAdAvailabilityUpdate(string adName, bool isAvailable)
