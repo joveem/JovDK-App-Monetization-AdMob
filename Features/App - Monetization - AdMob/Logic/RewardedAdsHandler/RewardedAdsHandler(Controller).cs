@@ -32,9 +32,9 @@ namespace JovDK.App.Monetization.AdMob
             // iOS testing ad id = "ca-app-pub-3940256099942544/1712485313"
 
 #if UNITY_ANDROID
-            value = "ca-app-pub-8716863197536867/7258711711"; // TODO: REVIEW THIS!
+            value = _androidAdUnitId;
 #elif UNITY_IPHONE
-            value = "ca-app-pub-3940256099942544/1712485313"; // TODO: REVIEW THIS!
+            value = _iOSAdUnitId;
 #else
             value = "unused";
 #endif
