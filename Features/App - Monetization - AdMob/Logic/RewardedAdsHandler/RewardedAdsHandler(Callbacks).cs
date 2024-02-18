@@ -15,6 +15,7 @@ using GoogleMobileAds.Api;
 using JovDK.Debugging;
 using JovDK.SafeActions;
 using JovDK.SerializingTools.Json;
+using System.Linq;
 
 // from project
 // ...
@@ -27,11 +28,15 @@ namespace JovDK.App.Monetization.AdMob
         void OnInitializationCompleted(InitializationStatus initializationStatus)
         {
             DebugExtension.NDLog("initializationStatus = " + initializationStatus.SerializeObjectToJSON());
-            DebugExtension.NDLog("adapterStatusMap = " + initializationStatus.getAdapterStatusMap().SerializeObjectToJSON());
-            // _currentInitializationStatus = initializationStatus;
+            DebugExtension.NDLog("adapterStatusMap = " + initializationStatus.getAdapterStatusMap().SerializeObjectToJSON(true));
 
-            _isInitialized = true;
-            OnInitializationFinish();
+            AdapterStatus adapterStatus = initializationStatus.getAdapterStatusMap().Values.ToList()[0];
+
+            if (adapterStatus.InitializationState == AdapterState.Ready)
+            {
+                _isInitialized = true;
+                OnInitializationFinish();
+            }
         }
 
         void OnRewardedAdLoaded(RewardedAd rewardedAd, LoadAdError error)
@@ -79,20 +84,22 @@ namespace JovDK.App.Monetization.AdMob
         void OnInitializationFinish()
         {
             OnInitializationFinishCallback?.Invoke();
-            // LoadRewardedAd();
+            LoadRewardedAd();
         }
 
         public void OnVideoRewardClose(Reward reward)
         {
             DebugExtension.NDLog(
-                "#> ".ToColor(GoodColors.Pink) + "OnVideoRewardClose" + "\n" +
+                "#> ".ToColor(GoodColors.Pink) +
+                "OnVideoRewardClose" + "\n" +
+                "reward.Type = " + reward.Type + "\n" +
+                "reward.Amount = " + reward.Amount + "\n" +
                 "reward = " + "\n" +
-                reward.SerializeObjectToJSON(true));
+                reward.SerializeObjectToJSON(true) + "\n" +
+                "");
 
-            // TODO: Reward the user.
-            const string rewardMsg = "Rewarded ad rewarded the user. Type: {0}, amount: {1}.";
-            Debug.Log(String.Format(rewardMsg, reward.Type, reward.Amount));
-            // LoadRewardedAd();
+            // TODO: Reward the user
+            LoadRewardedAd();
         }
 
         void OnAdAvailabilityUpdate(string adName, bool isAvailable)
