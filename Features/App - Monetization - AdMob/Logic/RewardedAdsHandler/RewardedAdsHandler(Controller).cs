@@ -69,9 +69,13 @@ namespace JovDK.App.Monetization.AdMob
             if (_currentRewardedAd != null && _currentRewardedAd.CanShowAd())
             {
                 OnAdAvailabilityUpdate("n/a", false);
+                RegisterEventHandlers(_currentRewardedAd);
+                RegisterReloadHandler(_currentRewardedAd);
+
                 _currentRewardedAd.Show(OnVideoRewardClose);
             }
         }
+
         void RegisterEventHandlers(RewardedAd rewardedAd)
         {
             // Raised when the ad is estimated to have earned money.

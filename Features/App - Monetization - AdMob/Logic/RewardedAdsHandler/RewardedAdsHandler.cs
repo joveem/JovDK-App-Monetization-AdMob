@@ -42,6 +42,7 @@ namespace JovDK.App.Monetization.AdMob
 
         public Action OnInitializationFinishCallback = null;
         public Action<string, bool> OnAdAvailabilityUpdateCallback = null;
+        public Action<Reward> OnVideoRewardCloseCallback = null;
 
 
 

@@ -87,7 +87,7 @@ namespace JovDK.App.Monetization.AdMob
             LoadRewardedAd();
         }
 
-        public void OnVideoRewardClose(Reward reward)
+        void OnVideoRewardClose(Reward reward)
         {
             DebugExtension.NDLog(
                 "#> ".ToColor(GoodColors.Pink) +
@@ -98,8 +98,7 @@ namespace JovDK.App.Monetization.AdMob
                 reward.SerializeObjectToJSON(true) + "\n" +
                 "");
 
-            // TODO: Reward the user
-            LoadRewardedAd();
+            OnVideoRewardCloseCallback(reward);
         }
 
         void OnAdAvailabilityUpdate(string adName, bool isAvailable)
