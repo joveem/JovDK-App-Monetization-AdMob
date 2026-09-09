@@ -1,0 +1,60 @@
+namespace JovDK.App.Monetization.AdMob
+{
+    /// <summary>Owns one load/presentation lifecycle; SDK callbacks must be serialized by its adapter.</summary>
+    public sealed class RewardedAdSession
+    {
+        enum Phase { Idle, Loading, Ready, Showing, Disposed }
+        Phase _phase;
+        int _generation;
+        bool _rewarded;
+        public bool IsInitialized { get; private set; }
+
+        public bool TryInitialize(bool hasReadyAdapter)
+        {
+            if (!hasReadyAdapter || IsInitialized || _phase == Phase.Disposed) return false;
+            IsInitialized = true;
+            return true;
+        }
+
+        public bool TryBeginLoad(out int generation)
+        {
+            generation = _generation;
+            if (!IsInitialized || _phase == Phase.Loading || _phase == Phase.Showing || _phase == Phase.Disposed) return false;
+            generation = ++_generation;
+            _phase = Phase.Loading;
+            _rewarded = false;
+            return true;
+        }
+
+        public bool TryCompleteLoad(int generation, bool success)
+        {
+            if (_phase != Phase.Loading || generation != _generation) return false;
+            _phase = success ? Phase.Ready : Phase.Idle;
+            return true;
+        }
+
+        public bool TryBeginShow(out int generation)
+        {
+            generation = _generation;
+            if (_phase != Phase.Ready) return false;
+            _phase = Phase.Showing;
+            return true;
+        }
+
+        public bool TryReward(int generation)
+        {
+            if (_phase != Phase.Showing || generation != _generation || _rewarded) return false;
+            _rewarded = true;
+            return true;
+        }
+
+        public bool TryFinishShow(int generation)
+        {
+            if (_phase != Phase.Showing || generation != _generation) return false;
+            _phase = Phase.Idle;
+            return true;
+        }
+
+        public void Dispose() { _phase = Phase.Disposed; IsInitialized = false; }
+    }
+}

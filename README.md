@@ -46,3 +46,13 @@ git submodule add "https://github.com/joveem/JovDK-App-Monetization-AdMob" "Asse
 git submodule update --recursive --init
 #
 ```
+
+## Rewarded-ad integration
+
+`RewardedAdsHandler` retains the existing serialized IDs, availability properties and public callbacks. It adapts SDK callbacks onto Unity's main thread; `RewardedAdSession` owns initialization readiness, load/presentation generations, duplicate/stale completion guards and at-most-once rewards. The existing scene Assembler owns Display subscriptions. Destruction invalidates pending callbacks and releases the loaded ad.
+
+Editor and development builds use Google's official rewarded test units. Release builds use the serialized Android/iOS IDs. No production identifiers are replaced in scenes or prefabs.
+
+The host compiles against Google Mobile Ads Unity 8.7.0 and 11.5.0. Keep SDK/native dependencies coordinated in the consuming Unity project. The current adapter accepts rewards during the active presentation only; validate callback ordering for any mediation adapter before adopting it. Initialization with no ready adapter leaves ads unavailable; loading failure can be retried through `LoadRewardedAd`.
+
+[Editor tests](Tests/Editor/RewardedAdSessionTests.cs) cover readiness, duplicate operations, late callbacks, retries, disposal, reward uniqueness and development test-unit selection. These are technical gates, not proof of consent UX, live-network behavior or device QA. The consuming app remains responsible for its consent/privacy flow and store test-account setup.

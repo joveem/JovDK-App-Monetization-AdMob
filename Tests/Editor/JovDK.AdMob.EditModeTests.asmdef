@@ -1,0 +1,13 @@
+{
+  "name": "JovDK.AdMob.EditModeTests",
+  "references": [
+    "JovDK.App.Monetization.AdMob"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "autoReferenced": false
+}
