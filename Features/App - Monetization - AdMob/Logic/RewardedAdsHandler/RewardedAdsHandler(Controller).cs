@@ -9,20 +9,20 @@ namespace JovDK.App.Monetization.AdMob
         string GetRewardedAdId()
         {
 #if UNITY_ANDROID
-            return Debug.isDebugBuild ? "ca-app-pub-3940256099942544/5224354917" : _androidAdUnitId;
+            return _testMode ? "ca-app-pub-3940256099942544/5224354917" : _androidAdUnitId;
 #elif UNITY_IPHONE
-            return Debug.isDebugBuild ? "ca-app-pub-3940256099942544/1712485313" : _iOSAdUnitId;
+            return _testMode ? "ca-app-pub-3940256099942544/1712485313" : _iOSAdUnitId;
 #else
             return "unused";
 #endif
         }
-
         public void LoadRewardedAd()
         {
-            if (!IsInitialized || !_session.TryBeginLoad(out var generation)) return;
-            var old = _currentRewardedAd;
-            _currentRewardedAd = null;
-            if (old != null) old.Destroy();
+            if (!_session.TryBeginLoad(out var generation)) return;
+            DestroyCurrentAd();
+            _loadingGeneration = generation;
+            _deadline = Time.realtimeSinceStartupAsDouble + 30;
+            SetState(RewardedAdState.Loading);
             OnAdAvailabilityUpdate(false);
             try
             {
@@ -31,17 +31,18 @@ namespace JovDK.App.Monetization.AdMob
             }
             catch (Exception error)
             {
-                _session.TryCompleteLoad(generation, false);
-                Debug.LogWarning("AdMob rewarded ad request failed: " + error.Message);
+                if (_session.TryCompleteLoad(generation, false)) ScheduleRetry();
+                Debug.LogWarning("AdMob rewarded request failed: " + error.Message);
             }
         }
-
-        public void ShowRewardedAd()
+        public void ShowRewardedAd() => TryShowRewardedAd();
+        public bool TryShowRewardedAd()
         {
             var ad = _currentRewardedAd;
-            if (ad == null || _destroyed) return;
-            if (!ad.CanShowAd()) { OnAdAvailabilityUpdate(false); LoadRewardedAd(); return; }
-            if (!_session.TryBeginShow(out var generation)) return;
+            if (ad == null || _destroyed) return false;
+            if (!ad.CanShowAd()) { OnAdAvailabilityUpdate(false); LoadRewardedAd(); return false; }
+            if (!_session.TryBeginShow(out var generation)) return false;
+            SetState(RewardedAdState.Showing);
             OnAdAvailabilityUpdate(false);
             try
             {
@@ -49,11 +50,12 @@ namespace JovDK.App.Monetization.AdMob
                 {
                     if (reward != null && _session.TryReward(generation)) OnVideoRewardCloseCallback?.Invoke(reward);
                 }));
+                return true;
             }
             catch (Exception error)
             {
-                Debug.LogWarning("AdMob rewarded ad presentation failed: " + error.Message);
-                FinishPresentation(generation);
+                Debug.LogWarning("AdMob rewarded presentation failed: " + error.Message);
+                FinishPresentation(generation); return false;
             }
         }
     }

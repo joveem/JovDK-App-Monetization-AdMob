@@ -30,7 +30,7 @@ public sealed class RewardedAdSessionTests
     }
 
     [Test]
-    public void Initialization_RejectsMissingReadinessAndDuplicateCompletion()
+    public void Initialization_RejectsInvalidCompletionAndDuplicateCompletion()
     {
         var session = new RewardedAdSession();
         Assert.That(session.TryBeginLoad(out _), Is.False);

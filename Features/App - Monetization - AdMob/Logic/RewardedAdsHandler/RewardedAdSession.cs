@@ -9,9 +9,9 @@ namespace JovDK.App.Monetization.AdMob
         bool _rewarded;
         public bool IsInitialized { get; private set; }
 
-        public bool TryInitialize(bool hasReadyAdapter)
+        public bool TryInitialize(bool initializationCompleted)
         {
-            if (!hasReadyAdapter || IsInitialized || _phase == Phase.Disposed) return false;
+            if (!initializationCompleted || IsInitialized || _phase == Phase.Disposed) return false;
             IsInitialized = true;
             return true;
         }
@@ -53,6 +53,13 @@ namespace JovDK.App.Monetization.AdMob
             if (_phase != Phase.Showing || generation != _generation) return false;
             _phase = Phase.Idle;
             return true;
+        }
+
+        public bool IsShowing => _phase == Phase.Showing;
+        public bool InvalidatePending()
+        {
+            if (_phase == Phase.Showing || _phase == Phase.Disposed) return false;
+            ++_generation; _phase = Phase.Idle; _rewarded = false; return true;
         }
 
         public void Dispose() { _phase = Phase.Disposed; IsInitialized = false; }

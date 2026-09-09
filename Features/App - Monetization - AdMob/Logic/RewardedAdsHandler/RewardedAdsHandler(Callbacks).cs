@@ -1,4 +1,3 @@
-using System.Linq;
 using UnityEngine;
 using GoogleMobileAds.Api;
 
@@ -9,17 +8,12 @@ namespace JovDK.App.Monetization.AdMob
         void OnInitializationCompleted(InitializationStatus status)
         {
             if (_destroyed || IsInitialized) return;
-            var adapters = status == null ? null : status.getAdapterStatusMap();
-            if (adapters == null || !adapters.Values.Any(value => value != null && value.InitializationState == AdapterState.Ready))
-            {
-                Debug.LogWarning("AdMob initialization completed without a ready adapter.");
-                return;
-            }
-            if (!_session.TryInitialize(true)) return;
+            // Adapter readiness is diagnostic only. A valid completion permits a load attempt.
+            if (!_session.TryInitialize(AdMobInitializationPolicy.AllowsLoading(status)))
+            { SetState(RewardedAdState.Unavailable); Debug.LogWarning("AdMob initialization returned no status."); return; }
             OnInitializationFinishCallback?.Invoke();
             LoadRewardedAd();
         }
-
         void OnRewardedAdLoaded(int generation, RewardedAd ad, LoadAdError error)
         {
             bool success = error == null && ad != null;
@@ -31,22 +25,23 @@ namespace JovDK.App.Monetization.AdMob
             if (!success)
             {
                 if (ad != null) ad.Destroy();
-                OnAdAvailabilityUpdate(false);
-                Debug.LogWarning("AdMob rewarded ad load failed: " + (error == null ? "empty result" : error.ToString()));
-                return;
+                Debug.LogWarning("AdMob rewarded ad unavailable: " + (error == null ? "empty result" : error.GetMessage()));
+                ScheduleRetry(); return;
             }
+            _retry.Reset();
             _currentRewardedAd = ad;
             ad.OnAdFullScreenContentClosed += () => Dispatch(() => FinishPresentation(generation));
             ad.OnAdFullScreenContentFailed += errorInfo => Dispatch(() => FinishPresentation(generation));
+            SetState(RewardedAdState.Available);
             OnAdAvailabilityUpdate(true);
         }
-
         void FinishPresentation(int generation)
         {
             if (!_session.TryFinishShow(generation)) return;
+            PresentationFinished?.Invoke();
+            if (_modePending) { _modePending = false; _session.InvalidatePending(); }
             LoadRewardedAd();
         }
-
         void OnAdAvailabilityUpdate(bool available)
         {
             if (_destroyed || _hasAvailableAd == available) return;
