@@ -35,6 +35,7 @@ namespace JovDK.App.Monetization.AdMob
         public event Action PresentationFinished;
         [SerializeField] string _androidAdUnitId = "UNDEFINED";
         [SerializeField] string _iOSAdUnitId = "UNDEFINED";
+        [SerializeField] bool _DEBUG_forceTestMode = false;
 
         bool _requestsAllowed = true;
         bool _started;
@@ -98,6 +99,16 @@ namespace JovDK.App.Monetization.AdMob
             _retry.Reset();
             if (IsInitialized) LoadRewardedAd();
         }
+
+        public bool GetHasTestAdsEnabled()
+        {
+            bool returnValue;
+
+            returnValue = _DEBUG_forceTestMode || _testMode;
+
+            return returnValue;
+        }
+
         public void RetryLoading()
         {
             if (State != RewardedAdState.Unavailable || !IsInitialized) return;

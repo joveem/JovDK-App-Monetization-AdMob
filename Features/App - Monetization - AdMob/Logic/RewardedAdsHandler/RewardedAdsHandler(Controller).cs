@@ -9,9 +9,10 @@ namespace JovDK.App.Monetization.AdMob
         string GetRewardedAdId()
         {
 #if UNITY_ANDROID
-            return _testMode ? "ca-app-pub-3940256099942544/5224354917" : _androidAdUnitId;
+            // return _testMode ? "ca-app-pub-3940256099942544/5224354917" : _androidAdUnitId;
+            return GetHasTestAdsEnabled() ? "ca-app-pub-3940256099942544/5224354917" : _androidAdUnitId;
 #elif UNITY_IPHONE
-            return _testMode ? "ca-app-pub-3940256099942544/1712485313" : _iOSAdUnitId;
+            return GetHasTestAdsEnabled() ? "ca-app-pub-3940256099942544/1712485313" : _iOSAdUnitId;
 #else
             return "unused";
 #endif
