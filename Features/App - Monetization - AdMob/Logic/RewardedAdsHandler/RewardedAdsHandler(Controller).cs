@@ -9,16 +9,17 @@ namespace JovDK.App.Monetization.AdMob
         string GetRewardedAdId()
         {
 #if UNITY_ANDROID
-            return _testMode ? "ca-app-pub-3940256099942544/5224354917" : _androidAdUnitId;
+            // return _testMode ? "ca-app-pub-3940256099942544/5224354917" : _androidAdUnitId;
+            return GetHasTestAdsEnabled() ? "ca-app-pub-3940256099942544/5224354917" : _androidAdUnitId;
 #elif UNITY_IPHONE
-            return _testMode ? "ca-app-pub-3940256099942544/1712485313" : _iOSAdUnitId;
+            return GetHasTestAdsEnabled() ? "ca-app-pub-3940256099942544/1712485313" : _iOSAdUnitId;
 #else
             return "unused";
 #endif
         }
         public void LoadRewardedAd()
         {
-            if (!_session.TryBeginLoad(out var generation)) return;
+            if (!_requestsAllowed || _destroyed || !_session.TryBeginLoad(out var generation)) return;
             DestroyCurrentAd();
             _loadingGeneration = generation;
             _deadline = Time.realtimeSinceStartupAsDouble + 30;
@@ -32,14 +33,15 @@ namespace JovDK.App.Monetization.AdMob
             catch (Exception error)
             {
                 if (_session.TryCompleteLoad(generation, false)) ScheduleRetry();
-                Debug.LogWarning("AdMob rewarded request failed: " + error.Message);
+                LoadFailed?.Invoke(-1);
+                Debug.LogWarning("AdMob rewarded request failed.");
             }
         }
         public void ShowRewardedAd() => TryShowRewardedAd();
         public bool TryShowRewardedAd()
         {
             var ad = _currentRewardedAd;
-            if (ad == null || _destroyed) return false;
+            if (ad == null || _destroyed || !_requestsAllowed) return false;
             if (!ad.CanShowAd()) { OnAdAvailabilityUpdate(false); LoadRewardedAd(); return false; }
             if (!_session.TryBeginShow(out var generation)) return false;
             SetState(RewardedAdState.Showing);
@@ -54,7 +56,7 @@ namespace JovDK.App.Monetization.AdMob
             }
             catch (Exception error)
             {
-                Debug.LogWarning("AdMob rewarded presentation failed: " + error.Message);
+                Debug.LogWarning("AdMob rewarded presentation failed.");
                 FinishPresentation(generation); return false;
             }
         }

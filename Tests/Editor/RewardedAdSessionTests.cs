@@ -4,6 +4,31 @@ using JovDK.App.Monetization.AdMob;
 public sealed class RewardedAdSessionTests
 {
     [Test]
+    public void ConsentRevocationInvalidatesPendingAndBlocksNewLoadsUntilAllowed()
+    {
+        var session = InitializedSession();
+        session.TryBeginLoad(out var old);
+        session.SetRequestsAllowed(false);
+        Assert.That(session.TryCompleteLoad(old, true), Is.False);
+        Assert.That(session.TryBeginLoad(out _), Is.False);
+        Assert.That(session.TryBeginShow(out _), Is.False);
+        session.SetRequestsAllowed(true);
+        Assert.That(session.TryBeginLoad(out var current), Is.True);
+        Assert.That(session.TryCompleteLoad(current, true), Is.True);
+        Assert.That(session.TryBeginShow(out _), Is.True);
+    }
+    [Test]
+    public void RevocationDuringPresentationAllowsOneRewardButNoReload()
+    {
+        var session = InitializedSession();
+        session.TryBeginLoad(out var id); session.TryCompleteLoad(id, true); session.TryBeginShow(out _);
+        session.SetRequestsAllowed(false);
+        Assert.That(session.TryReward(id), Is.True);
+        Assert.That(session.TryReward(id), Is.False);
+        Assert.That(session.TryFinishShow(id), Is.True);
+        Assert.That(session.TryBeginLoad(out _), Is.False);
+    }
+    [Test]
     public void DevelopmentEditor_UsesOfficialRewardedTestUnit()
     {
         var owner = new UnityEngine.GameObject("Rewarded ad configuration test");

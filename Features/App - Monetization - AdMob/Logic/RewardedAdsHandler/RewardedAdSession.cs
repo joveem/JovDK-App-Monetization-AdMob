@@ -7,7 +7,15 @@ namespace JovDK.App.Monetization.AdMob
         Phase _phase;
         int _generation;
         bool _rewarded;
+        bool _requestsAllowed = true;
         public bool IsInitialized { get; private set; }
+
+        public void SetRequestsAllowed(bool allowed)
+        {
+            if (_requestsAllowed == allowed) return;
+            _requestsAllowed = allowed;
+            if (!allowed) InvalidatePending();
+        }
 
         public bool TryInitialize(bool initializationCompleted)
         {
@@ -19,7 +27,7 @@ namespace JovDK.App.Monetization.AdMob
         public bool TryBeginLoad(out int generation)
         {
             generation = _generation;
-            if (!IsInitialized || _phase == Phase.Loading || _phase == Phase.Showing || _phase == Phase.Disposed) return false;
+            if (!_requestsAllowed || !IsInitialized || _phase == Phase.Loading || _phase == Phase.Showing || _phase == Phase.Disposed) return false;
             generation = ++_generation;
             _phase = Phase.Loading;
             _rewarded = false;
@@ -36,7 +44,7 @@ namespace JovDK.App.Monetization.AdMob
         public bool TryBeginShow(out int generation)
         {
             generation = _generation;
-            if (_phase != Phase.Ready) return false;
+            if (!_requestsAllowed || _phase != Phase.Ready) return false;
             _phase = Phase.Showing;
             return true;
         }
