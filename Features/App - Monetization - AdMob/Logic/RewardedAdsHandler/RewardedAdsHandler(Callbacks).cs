@@ -25,7 +25,8 @@ namespace JovDK.App.Monetization.AdMob
             if (!success)
             {
                 if (ad != null) ad.Destroy();
-                Debug.LogWarning("AdMob rewarded ad unavailable: " + (error == null ? "empty result" : error.GetMessage()));
+                LoadFailed?.Invoke(error == null ? -1 : error.GetCode());
+                Debug.LogWarning("AdMob rewarded ad unavailable; code=" + (error == null ? -1 : error.GetCode()));
                 ScheduleRetry(); return;
             }
             _retry.Reset();

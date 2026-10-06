@@ -35,11 +35,34 @@ namespace JovDK.App.Monetization.AdMob
         public event Action PresentationFinished;
         [SerializeField] string _androidAdUnitId = "UNDEFINED";
         [SerializeField] string _iOSAdUnitId = "UNDEFINED";
+        [SerializeField] bool _DEBUG_forceTestMode = false;
 
-        void Start()
+        bool _requestsAllowed = true;
+        bool _started;
+        public event Action<int> LoadFailed;
+        public void SetRequestsAllowed(bool allowed)
+        {
+            if (_destroyed || _requestsAllowed == allowed) return;
+            _requestsAllowed = allowed;
+            _session.SetRequestsAllowed(allowed);
+            if (!allowed)
+            {
+                if (!_session.IsShowing) { _session.InvalidatePending(); DestroyCurrentAd(); }
+                OnAdAvailabilityUpdate(false);
+                SetState(RewardedAdState.Unavailable);
+            }
+            else if (_started)
+            {
+                if (IsInitialized) { _retry.Reset(); LoadRewardedAd(); }
+                else BeginInitialization();
+            }
+        }
+        void Start() { _started = true; if (_requestsAllowed) BeginInitialization(); }
+        void BeginInitialization()
         {
             _deadline = Time.realtimeSinceStartupAsDouble + 40;
             if (_initializationCompleted) { OnInitializationCompleted(_initializationStatus); return; }
+            InitializationCompleted -= OnInitializationCompleted;
             InitializationCompleted += OnInitializationCompleted;
             if (_initializationRequested) return;
             _initializationRequested = true;
@@ -56,7 +79,7 @@ namespace JovDK.App.Monetization.AdMob
         }
         void Update()
         {
-            if (_destroyed || Time.realtimeSinceStartupAsDouble < _deadline) return;
+            if (_destroyed || !_requestsAllowed || Time.realtimeSinceStartupAsDouble < _deadline) return;
             if (State == RewardedAdState.RetryWaiting) LoadRewardedAd();
             else if (State == RewardedAdState.Loading && _session.TryCompleteLoad(_loadingGeneration, false)) ScheduleRetry();
             else if (State == RewardedAdState.Initializing) SetState(RewardedAdState.Unavailable);
@@ -76,6 +99,16 @@ namespace JovDK.App.Monetization.AdMob
             _retry.Reset();
             if (IsInitialized) LoadRewardedAd();
         }
+
+        public bool GetHasTestAdsEnabled()
+        {
+            bool returnValue;
+
+            returnValue = _DEBUG_forceTestMode || _testMode;
+
+            return returnValue;
+        }
+
         public void RetryLoading()
         {
             if (State != RewardedAdState.Unavailable || !IsInitialized) return;
